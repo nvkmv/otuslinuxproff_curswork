@@ -1,0 +1,9 @@
+---
+- name: restore lost backup
+  gather_facts: false
+  become: true
+  vars:
+    barman_backup_id: 20230707T183233
+  hosts: replica
+  roles:
+    - barman-restore

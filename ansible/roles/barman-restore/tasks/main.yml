@@ -1,0 +1,26 @@
+---
+- name: barman switch-wal pgnext
+  become_user: barman
+  command: barman switch-wal pgnext
+
+- name: barman cron
+  become_user: barman
+  command: barman cron
+
+- name: restore database with id
+  shell:
+    cmd: 'barman recover pgnext "{{ barman_backup_id }}" /var/lib/pgsql/14/data/ --remote-ssh-comman "ssh postgres@192.168.56.110"'
+  register: backup_recover
+
+- name: backup_recover stdout
+  debug: msg="{{ backup_recover.stdout}}"
+
+- name: restart pgsql
+  become: true
+  # become_user: root
+  delegate_to: "{{ item }}"
+  systemd:
+    name: postgresql-14.service
+    state: restarted
+  with_items:
+    - "{{ groups['db'] }}"

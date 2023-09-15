@@ -1,0 +1,10 @@
+---
+- name: update packages
+  dnf:
+    name: "*"
+    state: latest
+
+- name: istall firewalld
+  dnf:
+    name:
+      - firewalld

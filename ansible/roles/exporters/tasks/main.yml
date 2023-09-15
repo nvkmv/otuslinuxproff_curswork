@@ -1,0 +1,29 @@
+---
+- name: get and unarchive node_exporter
+  unarchive:
+    src: https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
+    dest: /opt
+    remote_src: yes
+
+#- name: copy disk_exporeter
+#  copy:
+#    src: files/disk_usage_exporter
+#    dest: /opt
+#    mode: "0751"
+- name: add Unit node_exporter to systemd
+  template:
+    src: templates/node_exporter.service
+    dest: /etc/systemd/system
+    mode: "0644"
+  # with_items:
+  # - node_exporter.service
+  #  - disk_exporter.service
+
+- name: start systemd service
+  systemd:
+    name: node_exporter.service
+    enabled: yes
+    state: started
+  #with_items:
+  # - node_exporter.service
+  # - disk_exporter.service

@@ -1,0 +1,4 @@
+# http://your_ip:3100,
+loki_url: https://c94c-31-133-125-134.ngrok-free.app # you ip_ip:3100
+domain_name: otustest.fun
+certbot_mail: mix22mix@gmail.com

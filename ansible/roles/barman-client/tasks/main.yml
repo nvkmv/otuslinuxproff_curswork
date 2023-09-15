@@ -1,0 +1,43 @@
+---
+- name: create postgres ssh keys
+  become_user: postgres
+  user:
+    name: postgres
+    generate_ssh_key: true
+    ssh_key_file: /var/lib/pgsql/.ssh/id_rsa
+    ssh_key_type: rsa
+    force: no
+
+- name: check ssh key
+  become: true
+  become_user: postgres
+  command: cat /var/lib/pgsql/.ssh/id_rsa.pub
+  register: ssh_key
+
+- name: check ssh_key
+  debug: msg="{{ ssh_key.stdout }}"
+
+- name: copy ssh pub key to backup server
+  authorized_key:
+    key: "{{ ssh_key.stdout }}"
+    user: barman
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ groups['replica']}}"
+
+- name: skip fingerprint questions
+  become_user: postgres
+  lineinfile:
+    line: "StrictHostKeyChecking no"
+    path: /var/lib/pgsql/.ssh/config
+    create: true
+
+# create user barman with priv for backup
+- name: create user barman in pgsql
+  become: true
+  become_user: postgres
+  postgresql_user:
+    name: barman
+    password: "{{ barman_pass }}"
+    role_attr_flags: SUPERUSER
+    state: present

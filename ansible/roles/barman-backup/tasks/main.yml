@@ -1,0 +1,19 @@
+---
+- name: barman switch-wal pgnext
+  command: barman switch-wal pgnext
+
+- name: barman cron
+  become_user: barman
+  command: barman cron
+#- name: barman first backup
+#  become_user: barman
+#  shell:
+#    cmd: "barman backup pgnext --wait"
+#
+#- name: start crontab backup next database
+#  cron:
+#    name: "barman backup pgnext"
+#    user: barman
+#    minute: "*/10"
+#    job: "barman backup pgnext"
+#

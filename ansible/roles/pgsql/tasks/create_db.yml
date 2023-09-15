@@ -1,0 +1,39 @@
+---
+- name: create database
+  tags: create_db
+  postgresql_db:
+    name: next
+    state: present
+  become: true
+  become_user: postgres
+
+- name: crete database user
+  tags: create_user
+  postgresql_user:
+    name: nextuser
+    password: "{{ db_password }}"
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Grant privileges on db to user
+  tags: privs
+  postgresql_privs:
+    type: database
+    database: next
+    roles: nextuser
+    grant_option: no
+    privs: all
+  become: true
+  become_user: postgres
+
+- name: enable pg_stat_statements
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_ext:
+    name: pg_stat_statements
+    db: "{{ item }}"
+    state: present
+  with_items:
+    - postgres
+    - next

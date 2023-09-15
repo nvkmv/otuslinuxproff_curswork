@@ -1,0 +1,35 @@
+---
+- name: istall firewalld
+  dnf:
+    name:
+      - firewalld
+    state: latest
+
+- name: start firewalld service
+  systemd:
+    name: firewalld.service
+    enabled: true
+    state: started
+
+- name: enable ports
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  with_items:
+    - 80/tcp
+    - 443/tcp
+    - 42499/tcp
+    - 111/tcp
+    - 9080/tcp
+    - 9100/tcp
+    - 9113/tcp
+    - 38539/tcp
+    - 51520/udp
+    - 323/udp
+
+- name: firewalld reload
+  systemd:
+    name: firewalld.service
+    state: reloaded

@@ -1,0 +1,47 @@
+# install pstgresql
+---
+- name: add repo
+  dnf:
+    name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+
+- name: install postgresql14-server
+  dnf:
+    name:
+      - python3-pip
+      - postgresql14-server
+      - postgresql14-contrib
+
+- name: install python packages
+  pip:
+    name:
+      - psycopg2-binary #for working whith ansible module pgsql
+
+- name: Find out if PostgreSQL is initialized
+  ansible.builtin.stat:
+    path: "/var/lib/pgsql/14/data/pg_hba.conf"
+  register: postgres_data
+
+- name: initialized PostgreSQL
+  command: postgresql-14-setup initdb
+  when: not postgres_data.stat.exists
+
+- name: add PostgreSQL config files
+  template:
+    src: "templates/{{ item }}"
+    dest: /var/lib/pgsql/14/data
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  with_items:
+    - postgresql.conf
+    - pg_hba.conf
+
+- name: start postgresql14-server
+  systemd:
+    name: postgresql-14.service
+    enabled: true
+    state: started
+
+- include_tasks: replica.yml

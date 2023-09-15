@@ -1,0 +1,23 @@
+---
+- name: add peer
+  gluster.gluster.gluster_peer:
+    state: present
+    nodes:
+      - db
+
+- name: create volume
+  gluster.gluster.gluster_volume:
+    state: present
+    name: volume1
+    bricks: /gluster
+    replicas: 2
+    cluster:
+      - db
+      - replica
+    force: true
+  run_once: true
+
+- name: start volume1
+  gluster.gluster.gluster_volume:
+    name: volume1
+    state: started

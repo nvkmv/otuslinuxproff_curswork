@@ -1,0 +1,3 @@
+db_password: nextuser
+dbrepl_password: repl
+barman_pass: 12345

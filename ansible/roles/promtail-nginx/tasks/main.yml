@@ -1,0 +1,57 @@
+---
+- name: create dir for journald logs
+  file:
+    path: /var/log/journal
+    state: directory
+    owner: root
+    group: systemd-journal
+    mode: "2755"
+
+- name: template journald config
+  template:
+    src: templates/journald.conf
+    dest: /etc/systemd/journald.conf
+
+- name: restart journald service
+  systemd:
+    name: systemd-journald.service
+    state: restarted
+
+- name: journalctl flush
+  command: journalctl --flush
+
+- name: install unzip
+  dnf:
+    name: unzip
+    state: present
+
+- name: get promtail binary file
+  unarchive:
+    src: https://github.com/grafana/loki/releases/download/v2.8.2/promtail-linux-amd64.zip
+    dest: /usr/bin/
+    remote_src: true
+
+- name: add systemd units
+  template:
+    src: templates/promtail.service
+    dest: /etc/systemd/system
+
+- name: create dir for promtail config
+  file:
+    path: /etc/promtail
+    state: directory
+
+- name: add promtail config
+  template:
+    src: templates/promtail-config-journald.yaml.j2
+    dest: /etc/promtail/promtail-config-journald.yaml
+
+- name: systemd daemon reload
+  systemd:
+    daemon_reload: true
+
+- name: start promtail service
+  systemd:
+    name: promtail.service
+    enabled: true
+    state: started

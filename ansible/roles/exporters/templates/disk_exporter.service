@@ -1,0 +1,13 @@
+[Unit]
+Description=Prometheus disk usage exporter
+Documentation=https://github.com/dundee/disk_usage_exporter
+
+[Service]
+Restart=always
+ExecStart=/opt/disk_usage_exporter $ARGS
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target

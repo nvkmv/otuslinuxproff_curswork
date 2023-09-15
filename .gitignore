@@ -1,0 +1,12 @@
+data/
+.vscode/
+#terraform/terraform.tfvars
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+first_client/
+second_client/
+server_keys/
+terraform/addres
+.vagrant/

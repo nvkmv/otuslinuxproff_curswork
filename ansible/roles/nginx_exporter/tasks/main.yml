@@ -1,0 +1,36 @@
+---
+- name: add server config to nginx
+  template:
+    src: templates/metrics.conf
+    dest: /etc/nginx/conf.d/metrics.conf
+
+- name: nginx eload
+  systemd:
+    name: nginx.service
+    state: reloaded
+
+- name: create directory
+  file:
+    path: /opt/nginx-prometheus-exporter
+    state: directory
+
+- name: get nginx-prometheus-exporter
+  unarchive:
+    src: https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.11.0/nginx-prometheus-exporter_0.11.0_linux_amd64.tar.gz
+    dest: /opt/nginx-prometheus-exporter
+    remote_src: true
+
+- name: add systemd unit
+  template:
+    src: templates/nginx-prometheus-exporter.service
+    dest: /etc/systemd/system/nginx-prometheus-exporter.service
+
+- name: systemd daemon-reload
+  systemd:
+    daemon-reload: true
+
+- name: start service
+  systemd:
+    name: nginx-prometheus-exporter.service
+    enabled: true
+    state: started

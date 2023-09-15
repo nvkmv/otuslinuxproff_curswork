@@ -1,0 +1,12 @@
+---
+- name: git clone app
+  git:
+    repo: "https://github.com/nvkmv/dc_nextcloud-mysql.git"
+    dest: /home/vagrant/dc_nextcloud-mysql/
+  tags: git
+
+- name: up nextcloud container
+  command:
+    cmd: docker compose up -d
+    chdir: /home/vagrant/dc_nextcloud-mysql/
+  tags: up

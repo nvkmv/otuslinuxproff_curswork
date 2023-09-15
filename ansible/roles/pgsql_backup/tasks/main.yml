@@ -1,0 +1,41 @@
+---
+- name: add ssh keys
+  tags: addssh
+  user:
+    name: root
+    generate_ssh_key: true
+    ssh_key_file: .ssh/id_rsa
+
+- name: get id_rsa
+  command: cat /root/.ssh/id_rsa.pub
+  register: sshkey
+
+- name: ad ssh key to authorized_keys in master hosts
+  lineinfile:
+    path: $HOME/.ssh/authorized_keys
+    line: "{{ sshkey.stdout }}"
+  delegate_to: localhost
+  become: true
+  become_user: nvkmv
+
+- name: automatic add fingerprint
+  lineinfile:
+    path: $HOME/.ssh/config
+    line: StrictHostKeyChecking=accept-new
+    create: true
+    mode: "0644"
+
+- name: copy backup script
+  template:
+    src: templates/backup.sh.j2
+    dest: /opt/backup.sh
+    owner: root
+    group: root
+    mode: "0744"
+
+- name: backup
+  tags: backup
+  cron:
+    name: run pgsql backup
+    minute: "*"
+    job: "/opt/backup.sh"

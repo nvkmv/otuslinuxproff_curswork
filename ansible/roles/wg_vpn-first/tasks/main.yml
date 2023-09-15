@@ -1,0 +1,19 @@
+---
+- name: install wg-tools
+  dnf:
+    name: wireguard-tools
+    state: present
+
+- name: template wiguard config
+  template:
+    src: wg0.conf
+    dest: /etc/wireguard/wg0.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: start wg-client
+  systemd:
+    name: wg-quick@wg0
+    enabled: true
+    state: started

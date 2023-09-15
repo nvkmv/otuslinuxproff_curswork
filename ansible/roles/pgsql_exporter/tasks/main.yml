@@ -1,0 +1,53 @@
+---
+- name: install postgresql14-contrib
+  dnf:
+    name: postgresql14-contrib
+    state: present
+
+- name: get and unarchive postgres_exporter
+  unarchive:
+    src: https://github.com/prometheus-community/postgres_exporter/releases/download/v0.12.0/postgres_exporter-0.12.0.linux-amd64.tar.gz
+    dest: /opt
+    remote_src: true
+
+- name: add systemd unit postgres_exporter
+  template:
+    src: templates/postgres_exporter.service
+    dest: /etc/systemd/system
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: add queries file for pgsql_exporter
+  template:
+    src: templates/queries.yaml
+    dest: /var/lib/pgsql/queries.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: systemd daemon-reload
+  systemd:
+    daemon-reload: true
+
+- name: power on pg_stat_statement
+  lineinfile:
+    path: /var/lib/pgsql/14/data/postgresql.conf
+    line: shared_preload_libraries = 'pg_stat_statements'
+
+- name: add to pg_hdb.conf localhosh permission
+  lineinfile:
+    path: /var/lib/pgsql/14/data/pg_hba.conf
+    regexp: "# IPv4 local connections:"
+    line: host    all             all             127.0.0.1/32            trust
+
+- name: restart postgresql
+  systemd:
+    name: postgresql-14.service
+    state: restarted
+
+- name: start postgres_exporter
+  systemd:
+    name: postgres_exporter.service
+    enabled: true
+    state: started

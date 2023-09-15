@@ -1,0 +1,16 @@
+ 
+[Interface]
+PrivateKey = {{ server }} 
+Address = 10.0.0.1/24
+ListenPort = 51520
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+[Peer] #first_client
+PublicKey = {{ first_client_pubkey }}
+AllowedIPs = 10.0.0.2
+
+[Peer] #second_client_pubkey
+PublicKey = {{ second_client_pubkey }}
+AllowedIPs = 10.0.0.3
+

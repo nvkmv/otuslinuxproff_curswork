@@ -1,0 +1,59 @@
+---
+- name: install barman
+  dnf:
+    name:
+      - barman
+      - barman-cli
+    state: present
+
+- name: create ssh keys
+  become_user: barman
+  user:
+    name: barman
+    generate_ssh_key: yes
+    ssh_key_file: /var/lib/barman/.ssh/id_rsa
+    ssh_key_type: rsa
+    force: no
+
+- name: show pub key
+  become: true
+  become_user: barman
+  command: cat ~/.ssh/id_rsa.pub
+  register: ssh_key
+
+- name: check key
+  debug: msg="{{ ssh_key.stdout }}"
+
+- name: copy ssh pub key to db server
+  tags: copy_key
+  authorized_key:
+    key: "{{ ssh_key.stdout }}"
+    user: postgres
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ groups['db']}}"
+
+- name: skip fingerprint questions
+  become_user: barman
+  lineinfile:
+    line: "StrictHostKeyChecking no"
+    path: /var/lib/barman/.ssh/config
+    create: true
+
+- name: add pgpass
+  become_user: barman
+  lineinfile:
+    line: "192.168.56.110:5432:*:barman:12345"
+    path: /var/lib/barman/.pgpass
+    create: true
+    mode: "0600"
+
+- name: add barman config
+  template:
+    src: templates/barman.conf
+    dest: /etc
+
+- name: add barman config
+  template:
+    src: templates/next.conf
+    dest: /etc/barman.d

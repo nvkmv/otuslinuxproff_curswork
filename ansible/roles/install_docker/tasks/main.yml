@@ -1,0 +1,31 @@
+---
+- name: add repo
+  command: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  tags: docker
+
+- name: install docker
+  dnf:
+    name:
+      - docker-ce
+      #- docker-compose-plugin
+  tags: docker
+
+- name: enable monitoring
+  tags: docker_mon
+  template:
+    src: templates/daemon.json
+    dest: /etc/docker
+
+- name: start docker daemon
+  systemd:
+    name: "docker.service"
+    enabled: true
+    state: started
+  tags: systemd_docker
+
+- name: install pip, requests
+  dnf:
+    name:
+      - pip
+      - python3-requests
+    state: present

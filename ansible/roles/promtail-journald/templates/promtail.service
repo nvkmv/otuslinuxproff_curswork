@@ -1,0 +1,12 @@
+[Unit]
+Description=Promtail Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/promtail-linux-amd64 -config.file=/etc/promtail/promtail-config-journald.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

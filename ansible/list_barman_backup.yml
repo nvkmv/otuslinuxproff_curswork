@@ -1,0 +1,14 @@
+---
+- name: list backup
+  hosts: replica
+  gather_facts: false
+  become: true
+  become_user: barman
+  tasks:
+    - name: list-backup
+      command: barman list-backup pgnext
+      register: list_backup
+
+    - name: debug
+      debug:
+        msg: "{{ list_backup.stdout_lines }}"

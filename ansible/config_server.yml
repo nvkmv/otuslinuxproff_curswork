@@ -1,0 +1,158 @@
+---
+- name: set timezone
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: set timezone
+      timezone:
+        name: Europe/Moscow
+
+- name: config vps server
+  hosts: vps
+  gather_facts: false
+  become: true
+  pre_tasks:
+    - name: disable SE
+      ansible.posix.selinux:
+        state: disabled
+
+    - name: Reboot
+      ansible.builtin.reboot:
+        reboot_timeout: 4600
+
+#- name: update machines
+#  hosts: all
+#  gather_facts: false
+#  become: true
+#  tasks:
+#    - name:
+#      dnf:
+#        name: "*"
+#        state: latest
+
+- name: config vps
+  hosts: vps
+  tags: vps
+  vars_files: group_vars/vps.yml
+  gather_facts: false
+  roles:
+    - role: firewalld
+      tags: firewalld
+    - role: exporters
+      tags: exporters
+    - role: promtail-nginx
+      tags: promtail-nginx
+    - wg
+    - role: nginx-certbot
+      tags: nginx-certbot
+    - role: nginx_exporter
+      tags: nginx_exporter
+
+- name: config database server
+  hosts: db
+  gather_facts: false
+  tags: db
+  vars_files: group_vars/db.yml
+  become: true
+  roles:
+    - promtail-journald
+    - exporters
+    - role: pgsql
+      tags: pgsql
+    - role: pgsql_exporter
+      tags: pgsql_exporter
+    - glusterfs-cluster
+
+- name: config replica-database server
+  hosts: replica
+  gather_facts: false
+  tags: replica
+  vars_files: group_vars/db.yml
+  become: true
+  roles:
+    - promtail-journald
+    - exporters
+    - role: pgsql_replica
+      tags: pgsql_replica
+    - role: pgsql_exporter
+      tags: pgsql_exporter
+    - role: barman-server
+      tags: barman-server
+    - glusterfs-cluster
+    - glusterfs-pool
+
+- name: install and config barman in db
+  gather_facts: false
+  become: true
+  hosts: db
+  roles:
+    - role: barman-client
+      tags: barman-client
+
+- name: start barman backup
+  gather_facts: false
+  hosts: replica
+  become: true
+  become_user: barman
+  roles:
+    - role: barman-backup
+      tags: barman-backup
+
+- name: config  APP server
+  hosts: app
+  gather_facts: false
+  tags: app
+  become: true
+  roles:
+    - promtail-journald
+    - exporters
+    - wg_vpn-first
+    - role: glusterfs-client
+      tags: glusterfs-client
+    - role: install_docker
+      tags: install_docker
+    - role: nextcloud-apache
+      tags: next
+
+- name: config  APP2 server
+  hosts: app2
+  gather_facts: false
+  tags: app2
+  become: true
+  roles:
+    - exporters
+    - role: promtail-journald
+      tags: promtail-journald
+    - wg_vpn_app2
+    - glusterfs-client
+    - install_docker
+    - role: nextcloud-apache
+      tags: next2
+
+- name: start backup
+  tags: start_backup
+  hosts: replica
+  become: true
+  become_user: barman
+  tasks:
+    - name: switch-wal
+      become: true
+      become_user: barman
+      command: barman switch-wal pgnext
+
+    - name: pause 5 min
+      pause:
+        minutes: 5
+
+    - name: barman first backup
+      become_user: barman
+      shell:
+        cmd: "barman backup pgnext --wait"
+
+    - name: start crontab backup next database
+      cron:
+        name: "barman backup pgnext"
+        user: barman
+        minute: "*/5"
+        job: "barman backup pgnext"

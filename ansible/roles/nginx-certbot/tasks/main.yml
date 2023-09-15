@@ -1,0 +1,30 @@
+---
+- name: install epel-release
+  dnf:
+    name:
+      - epel-release
+
+- name: install packages
+  dnf:
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    state: present
+
+- name: template nginx config
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: start service
+  systemd:
+    name: nginx.service
+    enabled: true
+    state: started
+
+- name: certbot create cert
+  command: certbot --nginx --test-cert -n --agree-tos -d "{{ domain_name }}" --email "{{ certbot_mail }}"

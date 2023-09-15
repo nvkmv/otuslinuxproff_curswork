@@ -1,0 +1,9 @@
+[Unit]
+Description=Node_exporter
+
+[Service]
+ExecStart=/opt/node_exporter-1.5.0.linux-amd64/node_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

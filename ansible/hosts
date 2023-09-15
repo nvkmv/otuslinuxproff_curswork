@@ -1,0 +1,14 @@
+[replica]
+192.168.56.109 ansible_ssh_user=vagrant ansible_user=root ansible_sudo_pass=vagrant 
+
+[db]
+192.168.56.110 ansible_ssh_user=vagrant ansible_user=root ansible_sudo_pass=vagrant
+
+[app]
+192.168.56.111 ansible_ssh_user=vagrant ansible_user=root ansible_sudo_pass=vagrant 
+
+[app2]
+192.168.56.112 ansible_ssh_user=vagrant ansible_user=root ansible_sudo_pass=vagrant
+
+[vps]
+159.223.209.70 ansible_user=root

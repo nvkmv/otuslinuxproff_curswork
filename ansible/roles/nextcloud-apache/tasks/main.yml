@@ -1,0 +1,31 @@
+---
+#- name: copy docker files
+#  copy:
+#    src: files/etc/{{ item }}
+#    dest: /nextcloud-etc/
+#  with_items:
+#    - pear.conf
+#    - php
+#    - php-fpm.conf
+#    - php-fpm.d
+
+- name: start nextcloud docker container
+  docker_container:
+    name: nextcloud
+    image: "nextcloud:stable"
+    ports:
+      - "80:80"
+    volumes:
+      - /gluster/nextcloud:/var/www/html/
+      #- /nextcloud-etc:/usr/local/etc
+    env:
+      NEXTCLOUD_TRUSTED_DOMAINS: "otustest.fun 192.168.56.112 192.168.56.111"
+      POSTGRES_DB: "next"
+      POSTGRES_USER: "nextuser"
+      POSTGRES_PASSWORD: "nextuser"
+      POSTGRES_HOST: "192.168.56.110:5432"
+      #NEXTCLOUD_INIT_HTACCESS: "false"
+
+    restart_policy: always
+    state: started
+  tags: container

@@ -1,0 +1,1 @@
+sudo -u postgres pg_basebackup -X fetch --format=tar -U postgres -D - |ssh nvkmv@192.168.56.1 -p 2255 "gzip > backups/backup-$(date "+%F-%H-%M-%S").tar.gz" 

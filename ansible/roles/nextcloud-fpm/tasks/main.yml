@@ -1,0 +1,22 @@
+---
+- name: copy docker files
+  copy:
+    src: files/etc/{{ item }}
+    dest: /nextcloud-etc/
+  with_items:
+    - pear.conf
+    - php
+    - php-fpm.conf
+    - php-fpm.d
+
+- name: start nextcloud docker container
+  docker_container:
+    name: nextcloud
+    image: "nextcloud:24-fpm"
+    ports:
+      - "9000:9000"
+    volumes:
+      - /nextcloud:/var/www/html
+      - /nextcloud-etc:/usr/local/etc
+    state: started
+  tags: container

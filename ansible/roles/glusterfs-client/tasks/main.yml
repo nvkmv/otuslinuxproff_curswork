@@ -1,0 +1,32 @@
+- name: add repo
+  dnf:
+    name: centos-release-gluster9
+    state: present
+
+- name: change hosts file
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      192.168.56.110 db
+      192.168.56.109 replica
+      192.168.56.111 app1
+      192.168.56.112 app2
+
+- name: install package glusterfs-client
+  dnf:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - glusterfs-client
+
+- name: create directory
+  file:
+    path: /gluster
+    state: directory
+
+- name: mount gluster volume
+  mount:
+    name: /gluster
+    src: replica:/volume1
+    fstype: glusterfs
+    state: mounted

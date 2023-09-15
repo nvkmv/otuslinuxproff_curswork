@@ -1,0 +1,9 @@
+[Unit]
+Description=nginx-prometheus-exporter
+
+[Service]
+ExecStart=/opt/nginx-prometheus-exporter/nginx-prometheus-exporter --nginx.scrape-uri=http://127.0.0.1:8080/metrics
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
